@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer') 
 const emailConfirmFormat = require("./email.confirm.js")
 const passwordResetForgetFormat = require("./email.password.js")
+const otp = require("./email.otp.js")
 const generateToken = require('../utils/generateToken.js') 
 const AppError = require('../utils/appError.js')
 
@@ -13,7 +14,7 @@ const AppError = require('../utils/appError.js')
    * @returns {string} html email string
 */
 
-const sendEmail = async({email, redirectLink, codeNum, subject})=>{
+const sendEmail = async({email, redirectLink, codeNum, subject,OTP,pass,userName})=>{
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -23,16 +24,19 @@ const sendEmail = async({email, redirectLink, codeNum, subject})=>{
     })
     
     const info = await transporter.sendMail({
-        from: `BMD <${process.env.EMAIL}>`,
+        from: `Cardiff <${process.env.EMAIL}>`,
         to: email,
-        subject: subject || "BMD Email",
+        subject: subject || "Cardiff Email",
         html: (function (){
-            if(codeNum) {
+            if(OTP){
+                return otp(OTP)
+                
+            }else if(codeNum) {
                return passwordResetForgetFormat(codeNum)
             }
             else {
                 const token = generateToken({email})
-               return emailConfirmFormat(token, redirectLink)
+               return emailConfirmFormat(token, redirectLink,email,pass,userName)
             }
         })()
     }, (error , success)=>{

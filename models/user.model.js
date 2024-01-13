@@ -1,12 +1,12 @@
-const { ref } = require("joi");
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true , 'SubCategory name is required'],
+      required: [true , 'user name is required'],
       trim: true,
+      lowercase: true,
       minlength: [2 , 'too short user name'],
     },
     slug: {
@@ -24,48 +24,52 @@ const userSchema = new mongoose.Schema(
         }
     },
     password: {
-        type: String,
-        required: [true, 'password required'],
-        minlength: [6, 'Too short password'],
+      type: String,
+      required: true,
+      validate: {
+        validator: v =>
+          /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/.test(v),
+        message: 'Password must be at least 8 characters and contain at least one digit, one lowercase, and one uppercase letter.'
+      }
     },
-    wishlist: [
-        {
-          type: mongoose.Schema.ObjectId,
-          ref: 'product',
-        },
-    ],
-    phone:{
-        type: String,
-        required: [true, 'phone required'],
-        unique: true,
-        validate: {
-            validator: v => /^01[0125][0-9]{8}$/gm.test(v),
-            message: 'Mobile number is not valid'
-          }
+
+    imageProfile: {
+      type: String,
+      required: true,
     },
-    imageProfile: String,
-    address:{
-        city:{type: String, required:true},
-        details:{type: String, required:true},
-        postalCode:{type: String,},
-    },
-    confirm :{
+    isConfirm :{
         type: Boolean,
         default: false
     },
-    type:{
+    role:{
         type: String,
-        default: 'user'
+        required: true,
+        lowercase: true,
+        trim: true,
+        minlength: 2,
+    },
+    codePass:{
+      type: String,
+    },
+    isDeleted :{
+      type: Boolean,
+      default: false
+    },
+    OTP:{
+      type: String,
+    },
+    loginFailedNo:{
+      type: Number,
+      default: 0
+    },
+    blocked:{
+      type: Boolean,
+      default: false
     }
+    
+  },{ timestamps: true }
+  );
 
-  },
-  { timestamps: true }
-);
-
-userSchema.pre(/^findById/ , function(next){
-  this.populate('wishlist')
-  next()
-})
 
 const userModel = mongoose.model("user", userSchema);
 

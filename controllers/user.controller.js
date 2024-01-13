@@ -24,28 +24,26 @@ class UserController{
     static addUser = catchAsyncError(async function(req, res, next) {
 
 
-            const body = req.body 
-            const image = req.files?.imageProfile
             const redirectLink  = req.header('redirectLink')
+            let body = _.pick(req.body, ['name' , 'password' , 'email' ,'role' ],)
+            const image = req.files?.imageProfile
+            let pass = body.password
+            const userExists = await userModel.findOne({$or: [{email: body.email}, {name: body.name}]})
+            if(userExists) return next(new AppError(`User : ${body.name} already exists`, 409))
 
-            const userExists = await userModel.findOne({$or: [{email: body.email}, {phone: body.phone}]})
 
-            if(userExists) return next(new AppError('User already exists', 409))
-            if(image) {
-                body.imageProfile = await image[0].filename
-            }
+            if(!image) return next(new AppError(`image Profile is required`, 400))
+
+            body.imageProfile = await image[0].filename
+            
             
             body.slug = await slugify(body.name)
-            body.address ={
-                city : body.city,
-                postalCode : body.postalCode,
-                details : body.details
-            }
+
             body.password = await bcryptjs.hash(body.password,Number(process.env.SALT))
             const newUser = await userModel.create(body)
 
-            sendEmail({email:body.email, redirectLink, subject: "Email Confirmation"})
-            return res.status(201).json({message:  'User added successfully' ,user: newUser.name});
+            sendEmail({email:body.email, redirectLink, subject: "Email Confirmation",pass,userName:body.name})
+            return res.status(201).json({message:  `User : ${newUser.name} added successfully`});
 
 
     })
@@ -65,38 +63,36 @@ class UserController{
             let totalPages
             const search = {}
 
-            // Pagination 
-            pageSize = Number(req.query.pageSize) ||  20
-            pageNumber = Number(req.query.pageNumber) || 1
+            // // Pagination 
+            // pageSize = Number(req.query.pageSize) ||  20
+            // pageNumber = Number(req.query.pageNumber) || 1
 
             // Search Keywords
             keyword = keyword || ''
             search.$or = [
-                {phone: {$regex: keyword, $options: 'i'}},
                 {name: {$regex: keyword, $options: 'i'}},
                 {email: {$regex: keyword, $options: 'i'}},
-                {'address.city': {$regex: keyword, $options: 'i'}},
             ]
 
-            const countDocuments = await userModel.countDocuments()
+            // const countDocuments = await userModel.countDocuments()
             const users = await userModel.find()
-            .skip((pageNumber -1 ) * pageSize)
-            .limit(pageSize)
+            // .skip((pageNumber -1 ) * pageSize)
+            // .limit(pageSize)
             .find(search)
             .select('-password -__v')
 
-            if(users.length < pageSize ){
-                totalPages  = users.length>pageSize? Math.ceil(users.length/pageSize) : 1
-            }else{
-                totalPages  = countDocuments>pageSize? Math.ceil(countDocuments/pageSize) : 1
-            }
+            // if(users.length < pageSize ){
+            //     totalPages  = users.length>pageSize? Math.ceil(users.length/pageSize) : 1
+            // }else{
+            //     totalPages  = countDocuments>pageSize? Math.ceil(countDocuments/pageSize) : 1
+            // }
 
             return res.status(200).json(
                 {
-                    totalPages,
+                    // totalPages,
                     requestResults: users.length,
-                    pageNumber,
-                    pageSize,
+                    // pageNumber,
+                    // pageSize,
                     users
 
                 })
@@ -121,7 +117,37 @@ class UserController{
  *  @method PUT
  *  @access private (user himself)  
  */
-    static  updateUser = factory.updateDocument(userModel)
+    static  updateUser = catchAsyncError(async function(req, res, next){
+
+        let files = req.files.imageProfile
+        
+        if(!req.params.id) return next(new AppError('id is Missing', 400))
+        
+        let user = await userModel.findById(req.params.id)
+        if(!user) return next(new AppError('User not found', 404))
+        
+        let body = _.pick(req.body, ['name' , 'password' ,'role' , 'isDeleted' ],)
+
+        if(files){
+            if(fs.existsSync(path.join(__dirname, `../uploads/${user.imageProfile}`))){
+                fs.unlinkSync(path.join(__dirname, `../uploads/${user.imageProfile}`))
+              }
+              body.imageProfile = await files[0].filename
+        }
+
+        if(body.password){
+            body.password = await bcryptjs.hash(body.password,Number(process.env.SALT))
+        }
+
+        const userUpdated = await userModel.findByIdAndUpdate(req.params.id, body,{new: true})
+
+
+        return res.status(201).json({message: `User : ${userUpdated.name} Update successfully`})
+
+    })
+
+
+    
 
 /**
  *  @description Delete User By Id

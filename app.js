@@ -1,44 +1,81 @@
+
+//Packages
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const productRouter = require("./routes/product.routes");
-const categoryRouter = require("./routes/category.routes");
-const subCategoryRouter = require("./routes/subCategory.routes.js");
-const brandRouter = require("./routes/brand.routes.js");
-const userRouter = require("./routes/user.routes.js");
-const orderRouter = require("./routes/order.routes.js");
+const hpp = require('hpp');
+const path = require('path');
+const mongoSanitize = require('express-mongo-sanitize');
+const nocache = require("nocache");
+//-------------------------------------------------------------------------------//
+
+
+
+// Import Files
 const AppError = require('./utils/appError.js');
+const salesRouter = require("./routes/sales.routes");
+const programRouter = require("./routes/program.routes");
+const specializationRouter = require("./routes/specialization.routes.js");
+const slotRouter = require("./routes/slot.routes.js");
+const userRouter = require("./routes/user.routes.js");
+const companyRouter = require("./routes/company.routes.js");
+const trashRouter = require("./routes/trash.routes.js");
+const loginFailedRouter = require("./routes/loginFailed.routes");
+const studentRouter = require("./routes/student.routes.js");
+const intakeRouter = require("./routes/intake.routes.js");
+const admissionStatusRouter = require("./routes/admissionStatus.routes.js");
+const instructorRouter = require("./routes/instructor.routes.js");
+const authRouter = require("./routes/auth.routes");
 const globalErrorHandler = require("./middlewares/globalErrorHandler");
-
-
-
+//-------------------------------------------------------------------------------//
 
 const app = express();
 
 
 
+
+// Middlewares
 app.use(cors());
-app.use(helmet());
+app.use(express.static(path.join(__dirname,'./uploads')));
+app.use(express.json({limit:'20kb'}));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+// To remove data using these defaults:
+app.use(nocache());
+app.use(helmet());
+app.use(mongoSanitize());
+app.use(hpp());
+//-------------------------------------------------------------------------------//
 
 
 
 
-
-
-app.use("/api/v1/product",productRouter);
-app.use("/api/v1/category", categoryRouter);
-app.use("/api/v1/subCategory", subCategoryRouter);
-app.use("/api/v1/brand", brandRouter);
+// Routes
+app.use("/api/v1/specialization", specializationRouter);
+app.use("/api/v1/program", programRouter);
+app.use("/api/v1/slot", slotRouter);
+app.use("/api/v1/intake", intakeRouter);
+app.use("/api/v1/sales",salesRouter);
+app.use("/api/v1/student",studentRouter);
+app.use("/api/v1/trash",trashRouter);
+app.use("/api/v1/loginFailed",loginFailedRouter);
+app.use("/api/v1/company",companyRouter);
+app.use("/api/v1/instructor",instructorRouter);
 app.use("/api/v1/user", userRouter);
-app.use("/api/v1/order", orderRouter);
+app.use("/api/v1/admissionStatus", admissionStatusRouter);
+app.use('/api/v1/auth', authRouter);
+//-------------------------------------------------------------------------------//
 
 
 
+
+// Route for any url not matching
 app.all('*', (req, res, next)=>{
     next(new AppError(`Invalid URL: ${req.originalUrl}`, 404))
 })
+//-------------------------------------------------------------------------------//
+
+
+// Global Error Handler
 app.use(globalErrorHandler)
 
 

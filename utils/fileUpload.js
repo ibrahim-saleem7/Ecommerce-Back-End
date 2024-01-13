@@ -1,4 +1,5 @@
 const multer = require("multer")
+const AppError = require('../utils/appError');
 
 module.exports = fileUpload = (...params)=> {
 
@@ -11,15 +12,18 @@ module.exports = fileUpload = (...params)=> {
             const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
             cb(null, uniqueSuffix + '-' + file.originalname )
         }
+        
     })
 
     const fileFilter = (req, file, cb) => {
         if (file.mimetype.startsWith('image') || file.mimetype.startsWith('application/pdf')) {
             cb(null, true)
         }
-        else cb(null, false)
+        else {
+            cb(null, false)
+        }
     }
-    const upload = multer({storage, fileFilter})
+    const upload = multer({storage, fileFilter, limits: {fileSize: 4 * 1024 * 1024 },})
     return upload.fields([
         {name: params[0], maxCount:5},
         {name: params[1], maxCount:5},

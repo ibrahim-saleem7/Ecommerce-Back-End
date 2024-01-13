@@ -116,9 +116,9 @@ module.exports = passwordResetForgetFormat = (code)=>{
         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
           <tr>
             <td align="center" valign="top" style="padding: 36px 24px;">
-              <a href="https://www.blogdesire.com" target="_blank" style="display: inline-block;">
-                <img src="https://www.blogdesire.com/wp-content/uploads/2019/07/blogdesire-1.png" alt="Logo" border="0" width="48" style="display: block; width: 48px; max-width: 48px; min-width: 48px;">
-              </a>
+            <a href="https://cardiffsb.uk" target="_blank" style="display: inline-block;">
+                <img src="https://cardiffsb.uk/assets/images/cardiff-logo-ln.png" alt="Logo" border="0" style="display: block;width: 40%;">
+            </a>
             </td>
           </tr>
         </table>
@@ -142,7 +142,7 @@ module.exports = passwordResetForgetFormat = (code)=>{
         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
           <tr>
             <td align="center" bgcolor="#ffffff" style="padding: 36px 24px 0; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; border-top: 3px solid #d4dadf;">
-              <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 48px;">Reset Password</h1>
+              <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 48px;">OTP Login</h1>
             </td>
           </tr>
         </table>
